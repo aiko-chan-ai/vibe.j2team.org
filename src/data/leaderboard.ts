@@ -42,7 +42,7 @@ export const multiAppAuthors: AuthorStats[] = (() => {
   let currentRank = 1
   return sorted.map((entry, i) => {
     if (i > 0 && entry.apps.length < sorted[i - 1]!.apps.length) {
-      currentRank = i + 1
+      currentRank++
     }
     return { ...entry, rank: currentRank }
   })
