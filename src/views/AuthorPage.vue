@@ -5,6 +5,7 @@ import { useHead, useSeoMeta } from '@unhead/vue'
 import { Icon } from '@iconify/vue'
 import { getAuthorBySlug } from '@/data/authors'
 import { getCategoryLabel } from '@/data/categories'
+import FavoriteButton from '@/components/FavoriteButton.vue'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
@@ -132,8 +133,10 @@ const rankStyle = computed(() => {
             v-for="app in author.apps"
             :key="app.path"
             :to="app.path"
-            class="group flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
+            class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
           >
+            <FavoriteButton :path="app.path" class="top-2 right-3" />
+
             <h3
               class="font-display text-lg font-semibold text-text-primary group-hover:text-accent-coral transition-colors"
             >
