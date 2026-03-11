@@ -4,6 +4,7 @@ import { useEventListener, useIntersectionObserver, refDebounced } from '@vueuse
 import { RouterLink, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { pages, featuredPages } from '@/data/pages-loader'
+import type { PageInfo } from '@/types/page'
 import { padIndex } from '@/data/homepage'
 import { categories, type CategoryId } from '@/data/categories'
 import FavoriteButton from '@/components/FavoriteButton.vue'
@@ -54,16 +55,25 @@ const isFiltering = computed(() => {
 
 const hiddenCount = computed(() => pages.length - featuredPages.length)
 
-// Use all pages when filtering or expanded, featured-only otherwise (lazy normalization)
-const searchablePages = computed(() => {
-  const pool = isFiltering.value || showAll.value ? pages : featuredPages
-  return pool.map((p) => ({
+// Pre-normalize once at module load — avoids re-running NFD + regex on every search/filter change
+type NormalizedPage = PageInfo & { _name: string; _desc: string; _author: string }
+
+function toNormalized(p: PageInfo): NormalizedPage {
+  return {
     ...p,
     _name: normalize(p.name),
     _desc: normalize(p.description),
     _author: normalize(p.author),
-  }))
-})
+  }
+}
+
+const normalizedPages: NormalizedPage[] = pages.map(toNormalized)
+const normalizedFeaturedPages: NormalizedPage[] = featuredPages.map(toNormalized)
+
+// Computed only does a cheap pool swap — no normalization work
+const searchablePages = computed<NormalizedPage[]>(() =>
+  isFiltering.value || showAll.value ? normalizedPages : normalizedFeaturedPages,
+)
 
 const filteredPages = computed(() => {
   const query = normalize(debouncedQuery.value.trim())
@@ -93,22 +103,20 @@ function clearFilters() {
   activeCategory.value = null
 }
 
-const categoryCounts = computed(() => {
-  const counts: Partial<Record<CategoryId, number>> = {}
-  for (const page of pages) {
-    if (page.category) {
-      counts[page.category] = (counts[page.category] || 0) + 1
-    }
+// pages is a static array — no reactivity needed, compute once
+const categoryCounts: Partial<Record<CategoryId, number>> = {}
+for (const page of pages) {
+  if (page.category) {
+    categoryCounts[page.category] = (categoryCounts[page.category] || 0) + 1
   }
-  return counts
-})
+}
 
 const activeCategoryObj = computed(
   () => categories.find((c) => c.id === activeCategory.value) ?? null,
 )
 
 const isEmptyCategory = computed(
-  () => activeCategory.value !== null && !categoryCounts.value[activeCategory.value],
+  () => activeCategory.value !== null && !categoryCounts[activeCategory.value],
 )
 
 const router = useRouter()
