@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, type Directive } from 'vue'
-import { useEventListener, useIntersectionObserver, refDebounced } from '@vueuse/core'
+import { ref, computed, onBeforeUnmount, type Directive } from 'vue'
+import { useEventListener, refDebounced } from '@vueuse/core'
 import { RouterLink, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { pages, featuredPages } from '@/data/pages-loader'
@@ -12,25 +12,31 @@ import { useFavorites } from '@/composables/useFavorites'
 
 const { isFavorite } = useFavorites()
 
-const vAnimate: Directive<HTMLElement & { __stopObserve?: () => void }, string | undefined> = {
+// Single shared IntersectionObserver for all v-animate elements (instead of one per card)
+const sharedObserver = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        ;(entry.target as HTMLElement).classList.add('animate-fade-up')
+        sharedObserver.unobserve(entry.target)
+      }
+    }
+  },
+  { threshold: 0.1 },
+)
+
+onBeforeUnmount(() => {
+  sharedObserver.disconnect()
+})
+
+const vAnimate: Directive<HTMLElement, string | undefined> = {
   mounted(el, binding) {
     if (binding.value) el.style.animationDelay = binding.value
     el.style.opacity = '0'
-
-    const { stop } = useIntersectionObserver(
-      el,
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          el.classList.add('animate-fade-up')
-          stop()
-        }
-      },
-      { threshold: 0.1 },
-    )
-    el.__stopObserve = stop
+    sharedObserver.observe(el)
   },
   unmounted(el) {
-    el.__stopObserve?.()
+    sharedObserver.unobserve(el)
   },
 }
 
