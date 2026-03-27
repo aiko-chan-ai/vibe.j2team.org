@@ -164,6 +164,14 @@ const getLocationText = (loc: number) => {
   }
 }
 
+const specialAsciiMap: Record<string, number> = {
+  Enter: 13,
+  Escape: 27,
+  Backspace: 8,
+  Tab: 9,
+  Space: 32,
+}
+
 const handleKeyDown = (e: KeyboardEvent) => {
   e.preventDefault()
   hasPressed.value = true
@@ -178,15 +186,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key.length === 1) {
     asciiVal = e.key.charCodeAt(0)
   } else {
-    const specialAsciiMap: Record<string, number> = {
-      Enter: 13,
-      Escape: 27,
-      Backspace: 8,
-      Tab: 9,
-      Space: 32,
-    }
-
-    // Đã fix lỗi TypeScript ở đây
     const mappedAscii = specialAsciiMap[displayKey]
     if (mappedAscii !== undefined) {
       asciiVal = mappedAscii
