@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useClipboard } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
@@ -181,6 +182,13 @@ function clearAll() {
       class="absolute top-0 left-0 right-0 z-10 flex flex-wrap items-center justify-between gap-2 p-2 sm:p-4 bg-bg-surface/80 backdrop-blur-md border-b border-border-default shadow-sm pointer-events-none"
     >
       <div class="flex items-center gap-2 sm:gap-3">
+        <RouterLink
+          to="/"
+          class="p-1.5 rounded hover:bg-bg-elevated transition-colors text-text-secondary hover:text-text-primary pointer-events-auto shrink-0"
+          title="Back to Home"
+        >
+          <Icon icon="lucide:arrow-left" class="size-5" />
+        </RouterLink>
         <h1
           class="text-lg sm:text-xl font-display font-bold text-accent-coral flex items-center gap-1 sm:gap-2 shrink-0"
         >
